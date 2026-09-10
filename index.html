@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShopNexa - Multipurpose E-Commerce</title>
+    <style>
+        :root {
+            --primary-color: #0088cc;
+            --primary-light: #e6f7ff;
+            --bg-color: #f4f6f9;
+            --text-color: #333;
+            --card-bg: #fff;
+        }
+        [data-theme="dark"] {
+            --primary-color: #3399ff;
+            --primary-light: #1a2634;
+            --bg-color: #121212;
+            --text-color: #e0e0e0;
+            --card-bg: #1e1e1e;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-color); transition: 0.3s; }
+        
+        .top-bar { background: var(--primary-color); color: white; padding: 8px 5%; display: flex; justify-content: space-between; font-size: 14px; }
+        .top-bar select { background: transparent; color: white; border: 1px solid white; padding: 2px 5px; border-radius: 4px; cursor: pointer; }
+
+        .navbar { background: var(--card-bg); padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 1000; }
+        .logo { font-size: 24px; font-weight: bold; color: var(--primary-color); display: flex; align-items: center; gap: 10px; }
+        .search-box { display: flex; flex: 1; max-width: 500px; margin: 0 20px; }
+        .search-box input { width: 100%; padding: 10px; border: 2px solid var(--primary-color); border-radius: 4px 0 0 4px; outline: none; background: var(--card-bg); color: var(--text-color); }
+        .search-box button { background: var(--primary-color); color: white; border: none; padding: 0 20px; border-radius: 0 4px 4px 0; cursor: pointer; }
+        .nav-icons { display: flex; gap: 20px; align-items: center; font-weight: 600; cursor: pointer; }
+
+        .container { max-width: 1200px; margin: 20px auto; padding: 0 15px; }
+        
+        .owner-toggle-btn { background: #ff9900; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; margin-bottom: 20px; }
+        .owner-panel { background: var(--card-bg); border: 2px dashed var(--primary-color); padding: 20px; border-radius: 8px; margin-bottom: 30px; display: none; }
+        .owner-panel h3 { margin-bottom: 15px; color: var(--primary-color); }
+        .owner-panel input { width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; background: var(--card-bg); color: var(--text-color); }
+        .owner-panel button { background: #28a745; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; }
+
+        .section-title { font-size: 22px; margin-bottom: 15px; border-left: 5px solid var(--primary-color); padding-left: 10px; }
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
+        .product-card { background: var(--card-bg); border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); position: relative; transition: 0.3s; }
+        .product-card img { width: 100%; height: 180px; object-fit: cover; }
+        .badge { position: absolute; top: 10px; left: 10px; background: #ff4d4f; color: white; padding: 3px 8px; font-size: 12px; border-radius: 3px; }
+        .product-info { padding: 15px; }
+        .product-name { font-size: 16px; font-weight: bold; margin-bottom: 8px; height: 40px; overflow: hidden; }
+        .price-box { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
+        .current-price { color: var(--primary-color); font-size: 18px; font-weight: bold; }
+        .old-price { color: #888; text-decoration: line-through; font-size: 14px; }
+        .buy-btn { width: 100%; background: var(--primary-color); color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+
+        .controls-float { position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 999; }
+        .float-btn { background: var(--primary-color); color: white; border: none; padding: 10px 15px; border-radius: 50px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.2); font-weight: bold; }
+    </style>
+</head>
+<body data-theme="light">
+
+    <div class="top-bar">
+        <span id="top-welcome">ফ্রি শিপিং ১০০০ টাকার বেশি অর্ডারে! | Free Shipping over ৳1,000</span>
+        <div>
+            <select id="langSwitch" onchange="changeLanguage(this.value)">
+                <option value="bn">বাংলা</option>
+                <option value="en">English</option>
+            </select>
+        </div>
+    </div>
+
+    <header class="navbar">
+        <div class="logo">🛍️ ShopNexa</div>
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="প্রোডাক্ট খুঁজুন (Search products...)" oninput="filterProducts()">
+            <button>🔍</button>
+        </div>
+        <div class="nav-icons">
+            <span onclick="toggleOwnerPanel()">⚙️ Owner</span>
+            <span>🛒 Cart (<span id="cartCount">0</span>)</span>
+        </div>
+    </header>
+
+    <div class="container">
+        <button class="owner-toggle-btn" onclick="toggleOwnerPanel()">🌐 Owner Panel ওপেন/বন্ধ করুন</button>
+        <div class="owner-panel" id="ownerPanel">
+            <h3>📦 নতুন প্রোডাক্ট যোগ করুন (Owner Panel)</h3>
+            <input type="text" id="pName" placeholder="প্রোডাক্টের নাম (Product Name)">
+            <input type="text" id="pImage" placeholder="ছবির লিংক (Image URL)">
+            <input type="number" id="pPrice" placeholder="বর্তমান দাম (Current Price)">
+            <input type="number" id="pOldPrice" placeholder="পূর্বের ক্রস দাম (Old Crossed Price)">
+            <input type="text" id="pDiscount" placeholder="ডিসকাউন্ট ট্যাগ যেমন: 30% OFF">
+            <button onclick="saveProduct()">Save & Update 🌐</button>
+        </div>
+
+        <h2 class="section-title" id="secTitle">ট্রেন্ডিং প্রোডাক্টস (Trending Products)</h2>
+        <div class="product-grid" id="productGrid"></div>
+    </div>
+
+    <div class="controls-float">
+        <button class="float-btn" onclick="toggleDarkMode()">🌙 Dark/Light</button>
+    </div>
+
+    <script>
+        const defaultProducts = [
+            { name: "Men's Premium T-Shirt", image: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=500", price: 650, oldPrice: 1000, discount: "30% OFF" },
+            { name: "Wireless Earbuds", image: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=500", price: 1499, oldPrice: 2500, discount: "40% OFF" },
+            { name: "Smart Watch Fitness Tracker", image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500", price: 2549, oldPrice: 3500, discount: "25% OFF" },
+            { name: "Women's Stylish Handbag", image: "https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=500", price: 1050, oldPrice: 1500, discount: "30% OFF" }
+        ];
+
+        let products = JSON.parse(localStorage.getItem('shopnexa_products')) || defaultProducts;
+        let cartCount = 0;
+
+        function renderProducts(list = products) {
+            const grid = document.getElementById('productGrid');
+            grid.innerHTML = '';
+            list.forEach((p) => {
+                grid.innerHTML += `
+                    <div class="product-card">
+                        <span class="badge">${p.discount}</span>
+                        <img src="${p.image}" alt="${p.name}">
+                        <div class="product-info">
+                            <div class="product-name">${p.name}</div>
+                            <div class="price-box">
+                                <span class="current-price">৳${p.price}</span>
+                                <span class="old-price">৳${p.oldPrice}</span>
+                            </div>
+                            <button class="buy-btn" onclick="addToCart()">Order Now</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function saveProduct() {
+            const name = document.getElementById('pName').value;
+            const image = document.getElementById('pImage').value;
+            const price = document.getElementById('pPrice').value;
+            const oldPrice = document.getElementById('pOldPrice').value;
+            const discount = document.getElementById('pDiscount').value;
+
+            if(!name || !price) {
+                alert("নাম ও দাম লিখুন!");
+                return;
+            }
+
+            const newProduct = {
+                name: name,
+                image: image || "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500",
+                price: Number(price),
+                oldPrice: Number(oldPrice) || Number(price),
+                discount: discount || "New"
+            };
+
+            products.unshift(newProduct);
+            localStorage.setItem('shopnexa_products', JSON.stringify(products));
+            
+            document.getElementById('pName').value = '';
+            document.getElementById('pImage').value = '';
+            document.getElementById('pPrice').value = '';
+            document.getElementById('pOldPrice').value = '';
+            document.getElementById('pDiscount').value = '';
+            document.getElementById('ownerPanel').style.display = 'none';
+
+            renderProducts();
+            alert("সফলভাবে সেভ হয়েছে!");
+        }
+
+        function toggleOwnerPanel() {
+            const panel = document.getElementById('ownerPanel');
+            panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function filterProducts() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = products.filter(p => p.name.toLowerCase().includes(query));
+            renderProducts(filtered);
+        }
+
+        function addToCart() {
+            cartCount++;
+            document.getElementById('cartCount').innerText = cartCount;
+            alert("কার্টে যোগ করা হয়েছে!");
+        }
+
+        function toggleDarkMode() {
+            const body = document.body;
+            body.setAttribute('data-theme', body.getAttribute('data-theme') === 'light' ? 'dark' : 'light');
+        }
+
+        function changeLanguage(lang) {
+            if(lang === 'en') {
+                document.getElementById('top-welcome').innerText = "Free Shipping on Orders Over ৳1,000!";
+                document.getElementById('secTitle').innerText = "Trending Products";
+                document.getElementById('searchInput').placeholder = "Search products...";
+            } else {
+                document.getElementById('top-welcome').innerText = "ফ্রি শিপিং ১০০০ টাকার বেশি অর্ডারে! | Free Shipping over ৳1,000";
+                document.getElementById('secTitle').innerText = "ট্রেন্ডিং প্রোডাক্টস (Trending Products)";
+                document.getElementById('searchInput').placeholder = "প্রোডাক্ট খুঁজুন (Search products...)";
+            }
+        }
+
+        renderProducts();
+    </script>
+</body>
+  </html>
